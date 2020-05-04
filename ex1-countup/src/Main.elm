@@ -43,6 +43,8 @@ init =
 
 type Msg
     = Increment
+    | Decrement
+    | Reset
 
 
 
@@ -55,6 +57,17 @@ update msg model =
         Increment ->
             { model | count = model.count + 1 }
 
+        Decrement ->
+            case model.count of
+                0 ->
+                    model
+
+                _ ->
+                    { model | count = model.count - 1 }
+
+        Reset ->
+            { model | count = 0 }
+
 
 
 -- view : 現在のモデルをHTMLで表現する関数
@@ -65,4 +78,6 @@ view model =
     div []
         [ p [] [ text <| String.fromInt model.count ]
         , button [ onClick Increment ] [ text "+1" ]
+        , button [ onClick Decrement ] [ text "-1" ]
+        , button [ onClick Reset ] [ text "reset" ]
         ]
