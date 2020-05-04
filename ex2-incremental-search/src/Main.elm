@@ -1,9 +1,9 @@
 module Main exposing (Model, Msg(..), initialModel, main, update, view, viewInput, viewList, viewListItem, words)
 
 import Browser
-import Html exposing (Html, div, h1, input, li, text, ul)
+import Html exposing (Html, button, div, h1, input, li, text, ul)
 import Html.Attributes exposing (type_, value)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onClick, onInput)
 
 
 
@@ -25,12 +25,19 @@ main =
 
 type alias Model =
     { inputText : String
+    , mode : Mode
     }
+
+
+type Mode
+    = StartsWith
+    | Contains
 
 
 initialModel : Model
 initialModel =
     { inputText = ""
+    , mode = StartsWith
     }
 
 
@@ -41,6 +48,7 @@ initialModel =
 type Msg
     = NoOp
     | InputText String
+    | ChangeMode
 
 
 update : Msg -> Model -> Model
@@ -52,6 +60,14 @@ update msg model =
         InputText s ->
             { model | inputText = s }
 
+        ChangeMode ->
+            case model.mode of
+                StartsWith ->
+                    { model | mode = Contains }
+
+                Contains ->
+                    { model | mode = StartsWith }
+
 
 
 -- View
@@ -62,32 +78,47 @@ view model =
     div []
         [ h1 [] [ text "Incremental Search" ]
         , viewInput model
-        , viewList model.inputText
+        , viewList model
         ]
 
 
 viewInput : Model -> Html Msg
 viewInput model =
+    let
+        mode =
+            case model.mode of
+                StartsWith ->
+                    " start with "
+
+                Contains ->
+                    " containes "
+    in
     div []
         [ input [ type_ "text", value model.inputText, onInput InputText ] []
-        , text model.inputText
+        , button [ onClick ChangeMode ] [ text "change mode" ]
+        , text <| mode ++ model.inputText
         ]
 
 
-searchList : String -> List String
-searchList word =
+searchList : Model -> List String
+searchList model =
     let
         hasPrefix =
-            String.startsWith word
+            case model.mode of
+                StartsWith ->
+                    String.startsWith model.inputText
+
+                Contains ->
+                    String.contains model.inputText
     in
     List.filter hasPrefix words
 
 
-viewList : String -> Html Msg
-viewList word =
+viewList : Model -> Html Msg
+viewList model =
     ul [] <|
         List.map viewListItem <|
-            searchList word
+            searchList model
 
 
 viewListItem : String -> Html Msg
