@@ -3,6 +3,7 @@ module Main exposing (Model, Msg(..), initialModel, main, update, view, viewInpu
 import Browser
 import Html exposing (Html, div, h1, input, li, text, ul)
 import Html.Attributes exposing (type_, value)
+import Html.Events exposing (onInput)
 
 
 
@@ -39,6 +40,7 @@ initialModel =
 
 type Msg
     = NoOp
+    | InputText String
 
 
 update : Msg -> Model -> Model
@@ -46,6 +48,9 @@ update msg model =
     case msg of
         NoOp ->
             model
+
+        InputText s ->
+            { model | inputText = s }
 
 
 
@@ -57,22 +62,32 @@ view model =
     div []
         [ h1 [] [ text "Incremental Search" ]
         , viewInput model
-        , viewList
+        , viewList model.inputText
         ]
 
 
 viewInput : Model -> Html Msg
 viewInput model =
     div []
-        [ input [ type_ "text", value model.inputText ] []
+        [ input [ type_ "text", value model.inputText, onInput InputText ] []
         , text model.inputText
         ]
 
 
-viewList : Html Msg
-viewList =
+searchList : String -> List String
+searchList word =
+    let
+        hasPrefix =
+            String.startsWith word
+    in
+    List.filter hasPrefix words
+
+
+viewList : String -> Html Msg
+viewList word =
     ul [] <|
-        List.map viewListItem words
+        List.map viewListItem <|
+            searchList word
 
 
 viewListItem : String -> Html Msg
