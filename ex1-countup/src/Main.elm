@@ -9,6 +9,7 @@ import Html.Events exposing (onClick)
 -- main : The Elm Architecture に必要な関数をセットする
 
 
+main : Program () Model Msg
 main =
     Browser.sandbox
         { init = init

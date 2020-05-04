@@ -9,6 +9,7 @@ import Html.Attributes exposing (type_, value)
 -- Main
 
 
+main : Program () Model Msg
 main =
     Browser.sandbox
         { init = initialModel
