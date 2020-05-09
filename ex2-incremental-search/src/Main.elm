@@ -29,15 +29,27 @@ type alias Model =
     }
 
 
-type Mode
-    = StartsWith
-    | Contains
+type alias Mode =
+    { displayText : String
+    , filter : String -> String -> Bool
+    , next : Msg
+    }
+
+
+startsWith : Mode
+startsWith =
+    Mode " starts with " String.startsWith ChangeToContains
+
+
+contains : Mode
+contains =
+    Mode " contains " String.contains ChangeToStartsWith
 
 
 initialModel : Model
 initialModel =
     { inputText = ""
-    , mode = StartsWith
+    , mode = startsWith
     }
 
 
@@ -48,7 +60,8 @@ initialModel =
 type Msg
     = NoOp
     | InputText String
-    | ChangeMode
+    | ChangeToStartsWith
+    | ChangeToContains
 
 
 update : Msg -> Model -> Model
@@ -60,13 +73,11 @@ update msg model =
         InputText s ->
             { model | inputText = s }
 
-        ChangeMode ->
-            case model.mode of
-                StartsWith ->
-                    { model | mode = Contains }
+        ChangeToContains ->
+            { model | mode = contains }
 
-                Contains ->
-                    { model | mode = StartsWith }
+        ChangeToStartsWith ->
+            { model | mode = startsWith }
 
 
 
@@ -84,34 +95,11 @@ view model =
 
 viewInput : Model -> Html Msg
 viewInput model =
-    let
-        mode =
-            case model.mode of
-                StartsWith ->
-                    " start with "
-
-                Contains ->
-                    " containes "
-    in
     div []
         [ input [ type_ "text", value model.inputText, onInput InputText ] []
-        , button [ onClick ChangeMode ] [ text "change mode" ]
-        , text <| mode ++ model.inputText
+        , button [ onClick model.mode.next ] [ text "change mode" ]
+        , text <| model.mode.displayText ++ model.inputText
         ]
-
-
-searchList : Model -> List String
-searchList model =
-    let
-        hasPrefix =
-            case model.mode of
-                StartsWith ->
-                    String.startsWith model.inputText
-
-                Contains ->
-                    String.contains model.inputText
-    in
-    List.filter hasPrefix words
 
 
 viewList : Model -> Html Msg
@@ -124,6 +112,15 @@ viewList model =
 viewListItem : String -> Html Msg
 viewListItem word =
     li [] [ text word ]
+
+
+searchList : Model -> List String
+searchList model =
+    let
+        hasPrefix =
+            model.mode.filter model.inputText
+    in
+    List.filter hasPrefix words
 
 
 
